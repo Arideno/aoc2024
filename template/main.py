@@ -1,3 +1,5 @@
+import pathlib
+
 def prepare_data(input: str):
     pass
 
@@ -8,8 +10,9 @@ def second_part(input: str) -> int:
     pass
 
 if __name__ == '__main__':
-    test_input = open('test_input.txt', 'r').read()
-    input = open('input.txt', 'r').read()
+    path = pathlib.Path(__file__).parent
+    test_input = open(path.joinpath('test_input.txt'), 'r').read()
+    input = open(path.joinpath('input.txt'), 'r').read()
 
     print('First part:')
     print(f'Test: {first_part(test_input)}')
