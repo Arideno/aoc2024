@@ -1,8 +1,5 @@
 import pathlib
 
-def prepare_data(input: str):
-    pass
-
 def first_part(input: str) -> int:
     pass
 
