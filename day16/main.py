@@ -1,4 +1,5 @@
 import pathlib
+from queue import PriorityQueue
 
 directions = [
     (-1, 0),
@@ -29,33 +30,28 @@ def first_part(input: str) -> int:
             elif matrix[i][j] == 'E':
                 fx, fy = i, j
 
-    ans = 0
+    pq = PriorityQueue()
+    pq.put((0, sx, sy, 3))
+    visited = set()
 
-    q = [(0, sx, sy, 3)]
-    visited = {}
+    while not pq.empty():
+        s, x, y, d = pq.get()
 
-    while len(q) > 0:
-        s, x, y, d = q.pop(0)
-
-        if (x, y, d) in visited and visited[(x, y, d)] < s:
+        if (x, y, d) in visited:
             continue
-
-        visited[(x, y, d)] = s
 
         if x == fx and y == fy:
-            continue
+            ans = s
+            break
+
+        visited.add((x, y, d))
 
         nx, ny = x + directions[d][0], y + directions[d][1]
         if is_valid(nx, ny, rows, cols) and matrix[nx][ny] != '#':
-            q.append((s + 1, nx, ny, d))
+            pq.put((s + 1, nx, ny, d))
 
-        q.append((s + 1000, x, y, (d + 1) % 4))
-        q.append((s + 1000, x, y, (d - 1) % 4))
-
-    ans = 10**9
-    for d in range(4):
-        if (fx, fy, d) in visited:
-            ans = min(ans, visited[(fx, fy, d)])
+        pq.put((s + 1000, x, y, (d + 1) % 4))
+        pq.put((s + 1000, x, y, (d - 1) % 4))
 
     return ans
 
@@ -78,38 +74,36 @@ def second_part(input: str) -> int:
             elif matrix[i][j] == 'E':
                 fx, fy = i, j
 
-    ans = 0
-
-    q = [(0, sx, sy, 3, set([]))]
+    pq = PriorityQueue()
+    pq.put((0, sx, sy, 3, set()))
     visited = {}
-    bs = 10**9
-    ans = set()
+    best = 10**9
+    all_pos = set()
 
-    while len(q) > 0:
-        s, x, y, d, path = q.pop(0)
+    while not pq.empty():
+        s, x, y, d, pos = pq.get()
 
         if (x, y, d) in visited and visited[(x, y, d)] < s:
             continue
 
-        visited[(x, y, d)] = s
-
         if x == fx and y == fy:
-            if s < bs:
-                bs = s
-                ans = set()
-                ans.update(path)
-            elif s == bs:
-                ans.update(path)
+            if s < best:
+                best = s
+                all_pos = pos
+            elif s == best:
+                all_pos.update(pos)
             continue
+
+        visited[(x, y, d)] = s
 
         nx, ny = x + directions[d][0], y + directions[d][1]
         if is_valid(nx, ny, rows, cols) and matrix[nx][ny] != '#':
-            q.append((s + 1, nx, ny, d, path.union([(x, y)])))
+            pq.put((s + 1, nx, ny, d, pos.union([(nx, ny)])))
 
-        q.append((s + 1000, x, y, (d + 1) % 4, path))
-        q.append((s + 1000, x, y, (d - 1) % 4, path))
+        pq.put((s + 1000, x, y, (d + 1) % 4, pos))
+        pq.put((s + 1000, x, y, (d - 1) % 4, pos))
 
-    return len(ans) + 1
+    return len(all_pos) + 1
 
 if __name__ == '__main__':
     path = pathlib.Path(__file__).parent
