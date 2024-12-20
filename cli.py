@@ -1,6 +1,7 @@
 import os
 import argparse
 
+
 def create_files_for_day(year: str, day: int):
     day_str = f'day{day:02d}'
 
@@ -9,11 +10,11 @@ def create_files_for_day(year: str, day: int):
     input_path = os.path.join(data_dir, 'input.txt')
     test_input_path = os.path.join(data_dir, 'input.test.txt')
 
-    code_template = f'''### Day {day} - {year}
+    code_template = f'''# Day {day} - {year}
 
 import pathlib
 from helpers import *
-    
+
 def first_part(input: str) -> int:
     pass
 
@@ -21,7 +22,8 @@ def second_part(input: str) -> int:
    pass
 
 if __name__ == '__main__':
-    path = pathlib.Path(__file__).parent.parent.joinpath('data', '{year}', '{day_str}')
+    path = pathlib.Path(__file__).parent.parent.joinpath(
+        'data', '{year}', '{day_str}')
     test_input = open(path.joinpath('input.test.txt'), 'r').read()
     input = open(path.joinpath('input.txt'), 'r').read()
 
@@ -35,7 +37,7 @@ if __name__ == '__main__':
     print(f'Test: {{second_part(test_input)}}')
     print(f'Answer: {{second_part(input)}}')
 '''
-    
+
     os.makedirs(year, exist_ok=True)
     os.makedirs(data_dir, exist_ok=True)
 
@@ -60,15 +62,17 @@ if __name__ == '__main__':
     else:
         print(f'{test_input_path} already exists')
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate files for Advent of Code-style challenges.')
+    parser = argparse.ArgumentParser(
+        description='Generate files for Advent of Code-style challenges.')
     parser.add_argument(
-        'year', 
-        type=str, 
+        'year',
+        type=str,
         help='The year for which the files will be generated.'
     )
     parser.add_argument(
-        'day', 
+        'day',
         type=int,
         help='The day for which the files will be generated.'
     )
