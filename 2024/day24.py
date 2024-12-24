@@ -5,51 +5,108 @@ import re
 from helpers import *
 
 
-def eval_gate(gate, wires):
-    match = re.match(r'(\w+) (AND|OR|XOR) (\w+) -> (\w+)', gate)
+def simulate(wires: dict[str, int], gates: dict[str, tuple[str, str, str]]) -> dict[str, int]:
+    wires = wires.copy()
+    gates = gates.copy()
+    while len(gates) > 0:
+        for out, (in1, op, in2) in gates.copy().items():
+            val1 = wires.get(in1)
+            val2 = wires.get(in2)
 
-    in1, op, in2, out = match.groups()
-    val1 = wires.get(in1)
-    val2 = wires.get(in2)
+            if val1 is None or val2 is None:
+                continue
 
-    if val1 is None or val2 is None:
-        return False
+            if op == 'AND':
+                wires[out] = val1 & val2
+            elif op == 'OR':
+                wires[out] = val1 | val2
+            elif op == 'XOR':
+                wires[out] = val1 ^ val2
 
-    if op == 'AND':
-        wires[out] = val1 & val2
-    elif op == 'OR':
-        wires[out] = val1 | val2
-    elif op == 'XOR':
-        wires[out] = val1 ^ val2
+            del gates[out]
 
-    return True
+    return wires
+
+
+def get_digits_for_wire_prefix(wires: dict[str, int], prefix: str) -> str:
+    tuples = []
+    for wire, val in wires.items():
+        if wire.startswith(prefix):
+            tuples.append((wire, val))
+
+    tuples.sort(key=lambda x: x[0], reverse=True)
+    digits = ''.join([str(val) for _, val in tuples])
+
+    return digits
 
 
 def first_part(input: str) -> int:
     l1, l2 = input.split('\n\n')
     wires = {}
-    gates = []
+    gates = {}
 
     for line in l1.splitlines():
         wire, val = line.split(': ')
         wires[wire] = int(val)
 
     for line in l2.splitlines():
-        gates.append(line)
+        match = re.match(r'(\w+) (AND|OR|XOR) (\w+) -> (\w+)', line)
+        in1, op, in2, out = match.groups()
+        gates[out] = (in1, op, in2)
 
-    while len(gates) > 0:
-        for gate in gates.copy():
-            if eval_gate(gate, wires):
-                gates.remove(gate)
+    out_wires = simulate(wires, gates)
+    digits = get_digits_for_wire_prefix(out_wires, 'z')
 
-    bin_val = ''.join(str(wires[f'z{i:02}'])
-                      for i in range(len(wires) - 1, -1, -1) if f'z{i:02}' in wires)
-    return int(bin_val, 2)
+    return int(digits, 2)
+
+
+def get_dependency(gates: dict[str, tuple[str, str, str]], wire: str) -> str:
+    if wire not in gates:
+        return wire
+
+    in1, op, in2 = gates[wire]
+    return f'({get_dependency(gates, in1)} {op} {get_dependency(gates, in2)})'
 
 
 def second_part(input: str) -> int:
-    # Done manually
-    pass
+    l1, l2 = input.split('\n\n')
+    wires = {}
+    gates = {}
+
+    for line in l1.splitlines():
+        wire, val = line.split(': ')
+        wires[wire] = int(val)
+
+    for line in l2.splitlines():
+        match = re.match(r'(\w+) (AND|OR|XOR) (\w+) -> (\w+)', line)
+        in1, op, in2, out = match.groups()
+        gates[out] = (in1, op, in2)
+
+    wires = simulate(wires, gates)
+
+    x_digits = get_digits_for_wire_prefix(wires, 'x')
+    y_digits = get_digits_for_wire_prefix(wires, 'y')
+    z_digits = get_digits_for_wire_prefix(wires, 'z')
+
+    x = int(x_digits, 2)
+    y = int(y_digits, 2)
+
+    expected_z = str(bin(x + y))[2:]
+
+    print(f'Exp: {expected_z}')
+    print(f'Act: {z_digits}')
+
+    print(get_dependency(gates, 'z05'))
+    print(get_dependency(gates, 'z06'))
+    print(get_dependency(gates, 'z07'))
+    print(get_dependency(gates, 'z16'))
+    print(get_dependency(gates, 'z21'))
+    print(get_dependency(gates, 'z22'))
+    print(get_dependency(gates, 'z23'))
+    print(get_dependency(gates, 'z39'))
+    print(get_dependency(gates, 'z40'))
+    print(get_dependency(gates, 'z41'))
+    print(get_dependency(gates, 'z42'))
 
 
 if __name__ == '__main__':
